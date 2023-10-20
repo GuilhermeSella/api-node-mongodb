@@ -2,6 +2,22 @@ const User = require("../model/User")
 const express = require("express")
 const bcrypt = require("bcryptjs")
 const router = express.Router();
+const jwt = require("jsonwebtoken")
+const AuthConfig = require("../config/auth.json")
+
+
+//Função para gerar o token do usuário
+
+const generateToken = (user)=>{
+    return jwt.sign({
+        id:user.id,
+        nome:user.nome
+    }, AuthConfig.secret, {
+        expiresIn:86400
+    })
+
+}
+
 
 // Rota de registro com senha criptografada
 router.post("/registrar", async(req,res)=>{
@@ -18,7 +34,8 @@ router.post("/registrar", async(req,res)=>{
 
     return res.json({
         message:"Usuário criado com sucesso!",
-        data: user
+        data: user,
+        token: generateToken(user)
     })
 })
 
@@ -43,7 +60,13 @@ router.post("/authenticate", async(req,res)=>{
 
     user.senha = undefined;
 
-    return res.json(user)
+    
+
+    return res.json(
+        {
+            user,
+            token: generateToken(user)
+        })
 
 })
 
