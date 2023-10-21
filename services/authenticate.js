@@ -1,5 +1,7 @@
-module.exports = (req,res,next)=>{
+const jwt = require("jsonwebtoken")
+const AuthConfig = require("../config/auth.json")
 
+module.exports = (req,res,next)=>{
 
     const authHeader = req.headers.authorization
 
@@ -10,6 +12,7 @@ module.exports = (req,res,next)=>{
     }
 
     const partsToken = authHeader.split(" ");
+    console.log(partsToken)
 
     if(partsToken.length !== 2){
         return res.status(401).json({
@@ -25,6 +28,22 @@ module.exports = (req,res,next)=>{
         })
     }
 
+    return jwt.verify(token, AuthConfig.secret, (error, decoded)=>{
+
+        console.log(error);
+        console.log(decoded)
+
+        if(error){
+            return res.status(401).json({
+                message:"Token inválido ou expirado"
+            })
+        }
+
+        req.userLogged = decoded;
+
+        
+        return next()
+    })
 
     next()
 }
